@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, Button, TouchableOpacity } from 'react-native';
+import { 
+  View,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Image,
+  FlatList
+} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import AppBar from './src/component/AppBar';
+import BottomBar from './src/component/BottomBar';
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = () => {
   const [movies, setMovies] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredMovies, setFilteredMovies] = useState([]);
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [filterType, setFilterType] = useState('all');
 
   useEffect(() => {
     fetchMovies();
@@ -17,71 +24,130 @@ const HomeScreen = ({ navigation }) => {
       const response = await fetch('https://api.rapidmock.com/api/vikuman/v1/movies/all');
       const data = await response.json();
       setMovies(data);
-      setFilteredMovies(data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    const filtered = movies.filter(movie => movie.name.toLowerCase().includes(query.toLowerCase()));
-    setFilteredMovies(filtered);
-  };
-
-  const handleSort = () => {
-    const sorted = [...filteredMovies].sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.name.localeCompare(b.name);
-      } else {
-        return b.name.localeCompare(a.name);
-      }
-    });
-    setFilteredMovies(sorted);
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-  };
-
-  const handleFilter = (type) => {
-    setFilterType(type);
-    if (type === 'all') {
-      setFilteredMovies(movies);
-    } else {
-      const filtered = movies.filter(movie => movie.type === type);
-      setFilteredMovies(filtered);
-    }
-  };
+  const renderCard = ({ item }) => (
+    <View style={styles.cardContainer}>
+      <Image 
+        source={{ uri: item.poster_url }} 
+        style={styles.cardImage} 
+      />
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle}>{item.title}</Text>
+        <Text style={styles.cardDescription}>
+          {item.Description}
+        </Text>
+        <View style={styles.cardTypeContainer}>
+          <Text style={styles.cardType}>{item.type}</Text>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
-    <View>
-      <TextInput
-        placeholder="Search"
-        value={searchQuery}
-        onChangeText={handleSearch}
-      />
-      <Button title="Sort Alphabetically" onPress={handleSort} />
-      <Button title="Filter Movies" onPress={() => handleFilter('movie')} />
-      <Button title="Filter Shows" onPress={() => handleFilter('show')} />
-      <Button title="Show All" onPress={() => handleFilter('all')} />
-      <TouchableOpacity onPress={() => alert('Hamburger Menu Clicked')}>
-        <Text>Hamburger Menu</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-        <Text>Profile Menu</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('MyList')}>
-        <Text>My List</Text>
-      </TouchableOpacity>
-      <FlatList
-        data={filteredMovies}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => navigation.navigate('Details', { id: item.id })}>
-            <Text>{item.name}</Text>
+    <View style={{ backgroundColor: 'white', flex: 1 }}>
+      <AppBar />
+      <View style={{ paddingHorizontal: 16, flex: 1 }}>
+        <View style={styles.searchContainer}>
+          <TextInput style={styles.searchInput} placeholder="Search Movies/Shows/Genre" placeholderTextColor="#888" />
+        </View>
+
+        <View style={styles.actionContainer}>
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="sort" size={20} color="black" />
+            <Text style={styles.actionText}>Sort</Text>
           </TouchableOpacity>
-        )}
-      />
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="filter" size={20} color="black" />
+            <Text style={styles.actionText}>Filter</Text>
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={movies}
+          renderItem={renderCard}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 60 }}
+        />
+      </View>
+      <BottomBar />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  searchContainer: {
+    paddingVertical: 10,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+    fontSize: 14,
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  actionText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: 'black',
+  },
+  cardContainer: {
+    flexDirection: 'row',
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cardImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  cardContent: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 10,
+  },
+  cardTypeContainer: {
+    borderRadius: 5,
+    padding: 4,
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#666',
+  },
+  cardType: {
+    fontSize: 12,
+  },
+});
 
 export default HomeScreen;
