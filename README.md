@@ -1,17 +1,14 @@
-# React Native Expense Tracker App
+# React Native Cinemas App
 
-A simple and elegant React Native app that allows users to manage their expenses by reading SMS messages, extracting relevant expense information, and displaying them in an organized manner. The app features a clean and user-friendly interface that works smoothly on Android devices.
+A simple and elegant React Native app that allows users to browse and manage their favorite movies and TV shows. The app features a clean and user-friendly interface that works smoothly on Android and iOS devices.
 
 ## Features
-- 💸 **Extract Expense Information**: Parse and extract relevant expense details such as Amount, Description, Date, and Source of Payment.
-- 📊 **Display Expenses**: Show the extracted expenses in a clean and organized list view.
-- 🔍 **View All Messages**: Option to view all SMS messages, not just expense-related ones.
-- 🌟 **Clean and Intuitive User Interface**: A user-friendly interface that makes it easy to track and manage expenses.
-- 📱 **Compatible with Android**: Works smoothly on Android devices.
-
-## Screenshots
-| ![LandingPage](https://github.com/user-attachments/assets/1ba4e69b-2d19-4b59-b895-f0ac9fdae165) | ![ViewMessages](https://github.com/user-attachments/assets/1af92b7f-82b1-459d-873e-900404d81f4f) | 
-| --- | --- |
+- 🎬 **Browse Movies and TV Shows**: View a list of popular movies and TV shows.
+- 🔍 **Search Functionality**: Search for movies and TV shows by title.
+- 📊 **Sort and Filter**: Sort movies and TV shows alphabetically and filter by type (movie or show).
+- 🌟 **Clean and Intuitive User Interface**: A user-friendly interface that makes it easy to browse and manage movies and TV shows.
+- 📱 **Compatible with Android and iOS**: Works smoothly on both Android and iOS devices.
+- 🌟 **React-native-vector-icons**: Most popular react native icons library
 
 
 ## Getting Started
