@@ -1,6 +1,6 @@
 # React Native Cinemas App
-
-A simple and elegant React Native app that allows users to browse and manage their favorite movies and TV shows. The app features a clean and user-friendly interface that works smoothly on Android and iOS devices.
+A Minimalistic, Professional, and Beautiful UI for cinema lovers!
+This React Native app offers a seamless experience for browsing and managing favorite movies and TV shows. Designed with elegance and simplicity in mind, the app delivers a clean, intuitive interface optimized for both Android and iOS devices.
 
 ## Features
 - 🎬 **Browse Movies and TV Shows**: View a list of popular movies and TV shows.
@@ -9,6 +9,10 @@ A simple and elegant React Native app that allows users to browse and manage the
 - 🌟 **Clean and Intuitive User Interface**: A user-friendly interface that makes it easy to browse and manage movies and TV shows.
 - 📱 **Compatible with Android and iOS**: Works smoothly on both Android and iOS devices.
 - 🌟 **React-native-vector-icons**: Most popular react native icons library
+
+## Screenshots
+| ![Screenshot_1](https://github.com/user-attachments/assets/815bcd07-3f00-493e-88aa-f31cc50ff8d9) | ![Screenshot_2](https://github.com/user-attachments/assets/3eb79525-0efa-4c88-b841-ec1f36574ff8) | ![Screenshot_3](https://github.com/user-attachments/assets/45dfd879-df59-4c23-986a-7e1fda216ce5) |
+| --- | --- | --- |
 
 
 ## Getting Started
