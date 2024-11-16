@@ -1,4 +1,4 @@
-package com.readsms
+package com.cinemas
 
 import android.app.Application
 import com.facebook.react.PackageList

@@ -101,11 +101,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: '#333',
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 8,
+    color: '#333',
   },
   value: {
     fontWeight: 'normal',

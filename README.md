@@ -33,8 +33,8 @@ Follow the steps below to set up and run the React Native To-Do List App:
 First, clone the repository to your local machine:
 
 ```sh
-git clone https://github.com/ChewangGyalpuBhutia/ReadSms.git
-cd ReadSms
+git clone https://github.com/ChewangGyalpuBhutia/cinemas.git
+cd cinemas
 ```
 
 ### Step 2: Install Dependencies
