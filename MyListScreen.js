@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+} from 'react-native';
+import AppBar from './src/component/AppBar';
+import BottomBar from './src/component/BottomBar';
 
-const MyListScreen = () => {
-  const [myList, setMyList] = useState([]);
-  const [tab, setTab] = useState('To Watch');
+const MyListScreen = ({ navigation }) => {
+  const [myList, setMyList] = useState({ "To Watch": [], "Watched": [] });
 
   useEffect(() => {
     fetchMyList();
@@ -19,28 +26,102 @@ const MyListScreen = () => {
     }
   };
 
-  const filteredList = myList.filter(item => item.status === tab);
+  const groupIntoRows = (list, itemsPerRow) => {
+    const rows = [];
+    for (let i = 0; i < list.length; i += itemsPerRow) {
+      rows.push(list.slice(i, i + itemsPerRow));
+    }
+    return rows;
+  };
 
-  return (
-    <View>
-      <TouchableOpacity onPress={() => setTab('To Watch')}>
-        <Text>To Watch</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => setTab('Watched')}>
-        <Text>Watched</Text>
-      </TouchableOpacity>
+  const renderCard = ({ item }) => (
+    <View style={styles.cardContainer}>
+      <Image source={{ uri: item.poster_url }} style={styles.cardImage} />
+      <Text style={styles.cardTitle}>{item.title}</Text>
+      <Text style={styles.cardDate}>{item.updatedAt}</Text>
+    </View>
+  );
+
+  const renderRow = ({ item }) => (
+    <FlatList
+      data={item}
+      renderItem={renderCard}
+      keyExtractor={(movie) => movie.movieId.toString()}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.row}
+    />
+  );
+
+  const renderSection = ({ item }) => (
+    <View style={styles.sectionContainer}>
+      <Text style={styles.sectionTitle}>{item.title}</Text>
       <FlatList
-        horizontal
-        data={filteredList}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View>
-            <Text>{item.name}</Text>
-          </View>
-        )}
+        data={groupIntoRows(item.data, 7)}
+        renderItem={renderRow}
+        keyExtractor={(row, index) => index.toString()}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContainer}
       />
     </View>
   );
+
+  const sections = [
+    { title: 'Watched', data: myList.Watched },
+    { title: 'To Watch', data: myList["To Watch"] },
+  ];
+
+  return (
+    <View style={{ backgroundColor: 'white', flex: 1 }}>
+      <AppBar />
+      <FlatList
+        data={sections}
+        renderItem={renderSection}
+        keyExtractor={(item) => item.title}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+      />
+      <BottomBar navigation={navigation} />
+    </View>
+  );
 };
+
+const styles = StyleSheet.create({
+  sectionContainer: {
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black',
+  },
+  row: {
+    marginBottom: 10,
+  },
+  cardContainer: {
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  cardImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  cardTitle: {
+    marginTop: 5,
+    fontSize: 14,
+    textAlign: 'center',
+    color: 'black'
+  },
+  cardDate: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+  },
+  listContainer: {
+    paddingVertical: 10,
+  },
+});
 
 export default MyListScreen;
