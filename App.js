@@ -16,15 +16,15 @@ const App = () => {
           component={HomeScreen} 
           options={{ headerShown: false }} 
         />
-        <Stack.Screen 
+        {/* <Stack.Screen 
           name="MyList" 
           component={MyListScreen} 
           options={{ headerShown: false }} 
-        />
+        /> */}
         <Stack.Screen 
           name="Details" 
           component={DetailsScreen} 
-          // options={{ headerShown: false }} 
+          options={{ headerShown: false }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

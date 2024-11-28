@@ -1,256 +1,325 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
   Text,
-  Image,
-  FlatList,
+  Button,
+  TextInput,
+  ScrollView,
+  Alert,
+  StyleSheet,
+  TouchableOpacity
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import AppBar from './src/component/AppBar';
-import BottomBar from './src/component/BottomBar';
+import { parseString } from 'xml2js';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { RadioButton } from 'react-native-paper';
+import Svg, { Path } from 'react-native-svg';
+import { PanResponder } from 'react-native';
 
-const HomeScreen = ({ navigation }) => {
-  const [movies, setMovies] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [filterType, setFilterType] = useState('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [isGridLayout, setIsGridLayout] = useState(false);
+const App = () => {
+  const [xmlInput, setXmlInput] = useState('');
+  const [formFields, setFormFields] = useState([]);
+  const [formData, setFormData] = useState({});
+  const [drawing, setDrawing] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  useEffect(() => {
-    fetchMovies();
-  }, []);
+  // Predefined XML template
+  const predefinedXml = `
+    <form>
+      <field type="text" label="Full Name" required="true" />
+      <field type="date" label="Date of Birth" required="true" />
+      <field type="radio" label="Gender" required="true">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </field>
+      <field type="drawing" label="Signature" required="false" />
+    </form>
+  `;
 
-  const fetchMovies = async () => {
+  const handleRenderFromFile = () => {
+    parseXml(predefinedXml);
+  };
+
+  const handleRenderFromInput = () => {
+    if (!xmlInput.trim()) {
+      Alert.alert('Error', 'XML input cannot be empty');
+      return;
+    }
+    parseXml(xmlInput);
+  };
+
+  const parseXml = (xml) => {
     try {
-      const response = await fetch('https://api.rapidmock.com/api/vikuman/v1/movies/all');
-      const data = await response.json();
-      setMovies(data);
+      parseString(xml, (err, result) => {
+        if (err) {
+          Alert.alert('Error', 'Invalid XML format');
+          return;
+        }
+        const fields = result.form.field;
+        setFormFields(fields);
+
+        // Initialize form data
+        const initialData = {};
+        fields.forEach(field => {
+          initialData[field.$.label] = field.$.type === 'radio' ? '' : null;
+        });
+        setFormData(initialData);
+      });
     } catch (error) {
-      console.error(error);
+      Alert.alert('Parsing Error', 'Could not parse XML');
     }
   };
 
-  const handleSort = () => {
-    const sortedMovies = [...movies].sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.title.localeCompare(b.title);
-      } else {
-        return b.title.localeCompare(a.title);
-      }
-    });
-    setMovies(sortedMovies);
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  const updateFormData = (label, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [label]: value
+    }));
   };
 
-  const handleFilter = (type) => {
-    setFilterType(type);
-  };
+  const renderField = (field) => {
+    const label = field.$.label;
+    const isRequired = field.$.required === 'true';
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchMovies();
-    setRefreshing(false);
-  };
-
-  const toggleLayout = () => {
-    setIsGridLayout(!isGridLayout);
-  };
-
-  const filteredMovies = movies
-    .filter((movie) => movie.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter((movie) => filterType === 'all' || movie.type === filterType);
-
-  const renderListCard = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('Details', { id: item.id })}>
-      <View style={styles.listCardContainer}>
-        <Image source={{ uri: item.poster_url }} style={styles.listCardImage} />
-        <View style={styles.listCardContent}>
-          <Text style={styles.listCardTitle}>{item.title}</Text>
-          <Text style={styles.listCardDescription}>{item.Description}</Text>
-          <View style={styles.listCardTypeContainer}>
-            <Text style={styles.listCardType}>{item.type}</Text>
+    switch (field.$.type) {
+      case 'text':
+        return (
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              {label} {isRequired && <Text style={styles.required}>*</Text>}
+            </Text>
+            <TextInput
+              placeholder={`Enter ${label}`}
+              style={styles.input}
+              value={formData[label] || ''}
+              onChangeText={(text) => updateFormData(label, text)}
+            />
           </View>
-        </View>
-      </View>
-    </TouchableOpacity>
+        );
+
+      case 'date':
+        return (
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              {label} {isRequired && <Text style={styles.required}>*</Text>}
+            </Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <TextInput
+                placeholder="Select Date"
+                style={styles.input}
+                value={selectedDate.toLocaleDateString()}
+                editable={false}
+              />
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) {
+                    setSelectedDate(selectedDate);
+                    updateFormData(label, selectedDate);
+                  }
+                }}
+              />
+            )}
+          </View>
+        );
+
+      case 'radio':
+        return (
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              {label} {isRequired && <Text style={styles.required}>*</Text>}
+            </Text>
+            <RadioButton.Group
+              onValueChange={(value) => updateFormData(label, value)}
+              value={formData[label] || ''}
+            >
+              {field.option.map((opt, index) => (
+                <View key={index} style={styles.radioContainer}>
+                  <RadioButton value={opt.$.value} />
+                  <Text>{opt._}</Text>
+                </View>
+              ))}
+            </RadioButton.Group>
+          </View>
+        );
+
+      case 'drawing':
+        return (
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              {label} {isRequired && <Text style={styles.required}>*</Text>}
+            </Text>
+            <DrawingPad
+              onDrawingChange={(paths) => updateFormData(label, paths)}
+            />
+          </View>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const handleSubmit = () => {
+    // Validate required fields
+    const missingFields = formFields
+      .filter(field => field.$.required === 'true' && !formData[field.$.label])
+      .map(field => field.$.label);
+
+    if (missingFields.length > 0) {
+      Alert.alert('Validation Error', `Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    // Submit form data
+    Alert.alert('Form Submitted', JSON.stringify(formData, null, 2));
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>XML Form Renderer</Text>
+
+      <Button
+        title="Render Form from XML File"
+        onPress={handleRenderFromFile}
+      />
+
+      <TextInput
+        placeholder="Enter XML"
+        value={xmlInput}
+        onChangeText={setXmlInput}
+        style={styles.xmlInput}
+        multiline
+      />
+
+      <Button
+        title="Render Form from XML Input"
+        onPress={handleRenderFromInput}
+      />
+
+      {formFields.map((field, index) => (
+        <View key={index}>{renderField(field)}</View>
+      ))}
+
+      {formFields.length > 0 && (
+        <Button
+          title="Submit Form"
+          onPress={handleSubmit}
+          style={{ padding: 50 }}
+        />
+      )}
+    </ScrollView>
   );
+};
 
-  const renderGridCard = ({ item }) => (
-    <TouchableOpacity style={{ flex: 1, }}
-      onPress={() => navigation.navigate('Details', { id: item.id })}>
-      <View style={styles.gridCardContainer}>
-        <Image source={{ uri: item.poster_url }} style={styles.gridCardImage} />
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: 8
-        }}>
-          <Text style={styles.gridCardTitle}>{item.title}</Text>
-          {/* <Text style={styles.listCardDescription}>{item.Description}</Text> */}
-          <View style={styles.listCardTypeContainer}>
-            <Text style={styles.listCardType}>{item.type}</Text>
-          </View>
+// Drawing Component
+const DrawingPad = ({ onDrawingChange }) => {
+  const [paths, setPaths] = React.useState([]);
+  const [currentPath, setCurrentPath] = React.useState([]);
 
-        </View>
-      </View>
-    </TouchableOpacity>
+  const panResponder = React.useMemo(() =>
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        setCurrentPath([`M${locationX},${locationY}`]);
+      },
+      onPanResponderMove: (evt) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        setCurrentPath(prev => [...prev, `L${locationX},${locationY}`]);
+      },
+      onPanResponderRelease: () => {
+        const newPaths = [...paths, currentPath.join(' ')];
+        setPaths(newPaths);
+        setCurrentPath([]);
+        onDrawingChange(newPaths);
+      }
+    }),
+    [paths, onDrawingChange]
   );
 
   return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
-      <AppBar />
-      <View style={{ paddingHorizontal: 16, flex: 1 }}>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search Movies/Shows/Genre"
-            placeholderTextColor="#888"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+    <View
+      style={styles.drawingContainer}
+      {...panResponder.panHandlers}
+    >
+      <Svg height="200" width="100%">
+        {paths.map((path, index) => (
+          <Path
+            key={index}
+            d={path}
+            stroke="black"
+            strokeWidth="2"
+            fill="none"
           />
-        </View>
-
-        <View style={styles.actionContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleSort}>
-            <Icon name="sort" size={16} color="black" />
-            <Text style={styles.actionText}>Sort</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => handleFilter('movie')}>
-            <Icon name="film" size={16} color="black" />
-            <Text style={styles.actionText}>Movies</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => handleFilter('show')}>
-            <Icon name="tv" size={16} color="black" />
-            <Text style={styles.actionText}>TV Shows</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => handleFilter('all')}>
-            <Icon name="list" size={16} color="black" />
-            <Text style={styles.actionText}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={toggleLayout}>
-            <Icon name={isGridLayout ? 'th-list' : 'th-large'} size={16} color="black" />
-            <Text style={styles.actionText}>{isGridLayout ? 'List View' : 'Grid View'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <FlatList
-          data={filteredMovies}
-          renderItem={isGridLayout ? renderGridCard : renderListCard}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{ paddingBottom: 60 }}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          numColumns={isGridLayout ? 2 : 1}
-          key={isGridLayout ? 'g' : 'l'} // Add a key to force re-render when layout changes
-        />
-      </View>
-      <BottomBar navigation={navigation} />
+        ))}
+        {currentPath.length > 0 && (
+          <Path
+            d={currentPath.join(' ')}
+            stroke="black"
+            strokeWidth="2"
+            fill="none"
+          />
+        )}
+      </Svg>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  searchContainer: {
-    paddingVertical: 10,
-  },
-  searchInput: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    fontSize: 14,
-    color: '#666',
-  },
-  actionContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-  },
-  actionText: {
-    marginLeft: 8,
-    fontSize: 13,
-    color: 'black',
-  },
-  listCardContainer: {
-    flexDirection: 'row',
-    marginTop: 8,
-    padding: 10,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  gridCardContainer: {
+  container: {
     flex: 1,
-    margin: 5,
-    padding: 10,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+
   },
-  listCardImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-  },
-  gridCardImage: {
-    width: '100%',
-    height: 100,
-    borderRadius: 10,
-  },
-  listCardContent: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  listCardTitle: {
-    fontSize: 18,
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 5,
-    color: 'black'
+    marginBottom: 20,
+    textAlign: 'center'
   },
-  gridCardTitle: {
+  fieldContainer: {
+    marginBottom: 15,
+  },
+  label: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 5,
-    color: 'black'
+    marginBottom: 5,
   },
-  listCardDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
+  required: {
+    color: 'red'
   },
-  listCardTypeContainer: {
-    borderRadius: 5,
-    padding: 4,
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    alignItems: 'center',
+  input: {
     borderWidth: 1,
-    borderColor: '#666',
+    borderColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
   },
-  listCardType: {
-    fontSize: 12,
-    color: 'black'
+  xmlInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    margin: 10,
+    height: 100,
+    padding: 10,
+    borderRadius: 5,
   },
+  radioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  drawingContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    height: 200,
+    borderRadius: 5,
+  }
 });
 
-export default HomeScreen;
+export default App;
