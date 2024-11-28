@@ -16,6 +16,11 @@ This React Native application provides a dynamic XML-based form rendering system
 - Predefined XML template
 - Flexible XML input method
 
+## Screenshots
+
+| ![Screenshot_1732824742](https://github.com/user-attachments/assets/cf105e5c-6533-49a3-a629-f414c5bd3d5f) | ![Screenshot_1732824739](https://github.com/user-attachments/assets/13b1a584-fe66-4fbb-9d42-b83d70fd907e) | ![Screenshot_1732824725](https://github.com/user-attachments/assets/06b74ef4-37e3-4c27-a03a-134b78512a65) |
+|---|---|---|
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
