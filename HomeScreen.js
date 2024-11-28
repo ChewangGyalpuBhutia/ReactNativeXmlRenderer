@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Button,
   TextInput,
   ScrollView,
   Alert,
@@ -11,7 +10,7 @@ import {
 } from 'react-native';
 import { parseString } from 'xml2js';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { RadioButton } from 'react-native-paper';
+import { RadioButton, Button, TextInput as PaperTextInput, Appbar, Card, Title, Paragraph } from 'react-native-paper';
 import Svg, { Path } from 'react-native-svg';
 import { PanResponder } from 'react-native';
 
@@ -85,80 +84,80 @@ const App = () => {
     switch (field.$.type) {
       case 'text':
         return (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              {label} {isRequired && <Text style={styles.required}>*</Text>}
-            </Text>
-            <TextInput
-              placeholder={`Enter ${label}`}
-              style={styles.input}
-              value={formData[label] || ''}
-              onChangeText={(text) => updateFormData(label, text)}
-            />
-          </View>
+          <Card style={styles.fieldContainer}>
+            <Card.Content>
+              <Title>{label} {isRequired && <Text style={styles.required}>*</Text>}</Title>
+              <PaperTextInput
+                label={`Enter ${label}`}
+                mode="outlined"
+                value={formData[label] || ''}
+                onChangeText={(text) => updateFormData(label, text)}
+              />
+            </Card.Content>
+          </Card>
         );
 
       case 'date':
         return (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              {label} {isRequired && <Text style={styles.required}>*</Text>}
-            </Text>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <TextInput
-                placeholder="Select Date"
-                style={styles.input}
-                value={selectedDate.toLocaleDateString()}
-                editable={false}
-              />
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={selectedDate}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) {
-                    setSelectedDate(selectedDate);
-                    updateFormData(label, selectedDate);
-                  }
-                }}
-              />
-            )}
-          </View>
+          <Card style={styles.fieldContainer}>
+            <Card.Content>
+              <Title>{label} {isRequired && <Text style={styles.required}>*</Text>}</Title>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+                <PaperTextInput
+                  label="Select Date"
+                  mode="outlined"
+                  value={selectedDate.toLocaleDateString()}
+                  editable={false}
+                />
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={selectedDate}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) {
+                      setSelectedDate(selectedDate);
+                      updateFormData(label, selectedDate);
+                    }
+                  }}
+                />
+              )}
+            </Card.Content>
+          </Card>
         );
 
       case 'radio':
         return (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              {label} {isRequired && <Text style={styles.required}>*</Text>}
-            </Text>
-            <RadioButton.Group
-              onValueChange={(value) => updateFormData(label, value)}
-              value={formData[label] || ''}
-            >
-              {field.option.map((opt, index) => (
-                <View key={index} style={styles.radioContainer}>
-                  <RadioButton value={opt.$.value} />
-                  <Text>{opt._}</Text>
-                </View>
-              ))}
-            </RadioButton.Group>
-          </View>
+          <Card style={styles.fieldContainer}>
+            <Card.Content>
+              <Title>{label} {isRequired && <Text style={styles.required}>*</Text>}</Title>
+              <RadioButton.Group
+                onValueChange={(value) => updateFormData(label, value)}
+                value={formData[label] || ''}
+              >
+                {field.option.map((opt, index) => (
+                  <View key={index} style={styles.radioContainer}>
+                    <RadioButton value={opt.$.value} />
+                    <Text>{opt._}</Text>
+                  </View>
+                ))}
+              </RadioButton.Group>
+            </Card.Content>
+          </Card>
         );
 
       case 'drawing':
         return (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              {label} {isRequired && <Text style={styles.required}>*</Text>}
-            </Text>
-            <DrawingPad
-              onDrawingChange={(paths) => updateFormData(label, paths)}
-            />
-          </View>
+          <Card style={styles.fieldContainer}>
+            <Card.Content>
+              <Title>{label} {isRequired && <Text style={styles.required}>*</Text>}</Title>
+              <DrawingPad
+                onDrawingChange={(paths) => updateFormData(label, paths)}
+              />
+            </Card.Content>
+          </Card>
         );
 
       default:
@@ -183,36 +182,47 @@ const App = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>XML Form Renderer</Text>
+      <Appbar.Header>
+        <Appbar.Content title="XML Form Renderer" />
+      </Appbar.Header>
 
-      <Button
-        title="Render Form from XML File"
-        onPress={handleRenderFromFile}
-      />
+      <Card style={styles.card}>
+        <Card.Content>
+          <Button mode="contained" onPress={handleRenderFromFile}
+          >
+            Render Form from XML File
+          </Button>
+        </Card.Content>
+      </Card>
 
-      <TextInput
-        placeholder="Enter XML"
-        value={xmlInput}
-        onChangeText={setXmlInput}
-        style={styles.xmlInput}
-        multiline
-      />
-
-      <Button
-        title="Render Form from XML Input"
-        onPress={handleRenderFromInput}
-      />
+      <Card style={styles.card}>
+        <Card.Content>
+          <PaperTextInput
+            label="Enter XML"
+            mode="outlined"
+            value={xmlInput}
+            onChangeText={setXmlInput}
+            multiline
+            style={styles.xmlInput}
+          />
+          <Button mode="contained" onPress={handleRenderFromInput} style={{marginTop: 20}}>
+            Render Form from XML Input
+          </Button>
+        </Card.Content>
+      </Card>
 
       {formFields.map((field, index) => (
         <View key={index}>{renderField(field)}</View>
       ))}
 
       {formFields.length > 0 && (
-        <Button
-          title="Submit Form"
-          onPress={handleSubmit}
-          style={{ padding: 50 }}
-        />
+        <Card style={styles.card}>
+          <Card.Content>
+            <Button mode="contained" onPress={handleSubmit}>
+              Submit Form
+            </Button>
+          </Card.Content>
+        </Card>
       )}
     </ScrollView>
   );
@@ -276,39 +286,19 @@ const DrawingPad = ({ onDrawingChange }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#f5f5f5',
-
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center'
+  card: {
+    margin: 10,
   },
   fieldContainer: {
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
+    margin: 10,
   },
   required: {
     color: 'red'
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 10,
-    borderRadius: 5,
-  },
   xmlInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    margin: 10,
     height: 100,
-    padding: 10,
-    borderRadius: 5,
   },
   radioContainer: {
     flexDirection: 'row',
